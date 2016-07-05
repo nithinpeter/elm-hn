@@ -8,14 +8,14 @@ import Json.Decode exposing (list, int)
 import Task
 
 -- component import example
-import Components.Hello exposing ( hello )
+import Components.NewsItem as NewsItem exposing (..)
 
 
 -- APP
 main : Program Never
 main =
     Html.program
-    { init = init 10
+    { init = init
     , view = view
     , update = update
     , subscriptions = subscriptions
@@ -23,16 +23,21 @@ main =
 
 
 -- MODEL
-type alias Model = { count : Int, list: (List Int) }
+type alias Model = { list: (List Int), dataList: (List NewsItem.Model) }
 
 -- INIT
-init: Int -> (Model, Cmd Msg)
-init count =
-  (Model count [], getTopNews)
+init: (Model, Cmd Msg)
+init =
+  (Model [] [], getTopNews)
 
 
 -- UPDATE
-type Msg = NoOp | Increment | Request | RequestSuccess (List Int) | RequestFail Http.Error
+type Msg = NoOp 
+  | Increment 
+  | Request 
+  | RequestSuccess (List Int) 
+  | RequestFail Http.Error
+  
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -44,9 +49,11 @@ update msg model =
     Request ->
       (model, Cmd.none)
     RequestSuccess list->
-      (Model model.count list, Cmd.none)
+      (Model list [], Cmd.none)
     RequestFail error->
-      (Model model.count [], Cmd.none)
+      (Model [] [], Cmd.none)
+
+    
 
 
 -- VIEW
@@ -56,17 +63,13 @@ view model =
   div [ class "container", style [("margin-top", "30px"), ( "text-align", "center" )] ][    -- inline CSS (literal)
     div [ class "row" ][
       div [ class "col-xs-12" ][
-        div [ class "jumbotron" ][
-          hello model.count
-        ],
-        text (toString model.list)
+        div [ class "jumbotron" ](
+          List.map NewsItem.view model.list
+        )
       ]
     ]
   ]
 
-viewList: Int -> Html Msg
-viewList item =
-  div [] [text (toString item)]
 
 -- SUBSCRIPTIONS  
 
@@ -77,6 +80,7 @@ subscriptions model =
 
 -- HTTP
 
+getTopNews : Cmd Msg 
 getTopNews =
   let 
     url = 
