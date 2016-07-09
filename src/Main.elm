@@ -8,6 +8,7 @@ import Json.Decode exposing (list, int)
 import Task
 
 -- component import example
+import Components.NewsItem as NewsItem
 import Components.NewsItem as NewsItem exposing (..)
 
 
@@ -23,18 +24,16 @@ main =
 
 
 -- MODEL
-type alias Model = { list: (List Int), dataList: (List NewsItem.Model) }
+type alias Model = List Components.NewsItem
 
 -- INIT
 init: (Model, Cmd Msg)
 init =
-  (Model [] [], getTopNews)
+  (Model [], getTopNews)
 
 
 -- UPDATE
-type Msg = NoOp 
-  | Increment 
-  | Request 
+type Msg = Request 
   | RequestSuccess (List Int) 
   | RequestFail Http.Error
   
@@ -42,16 +41,16 @@ type Msg = NoOp
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    NoOp -> 
-      (model, Cmd.none)
-    Increment -> 
-      (model, Cmd.none)
     Request ->
       (model, Cmd.none)
     RequestSuccess list->
-      (Model list [], Cmd.none)
+      let
+        children = 
+          list |> List.map (\id -> NewsItem.init id)
+       in
+        Model children 
     RequestFail error->
-      (Model [] [], Cmd.none)
+      (Model, Cmd.none)
 
     
 
@@ -64,7 +63,7 @@ view model =
     div [ class "row" ][
       div [ class "col-xs-12" ][
         div [ class "jumbotron" ](
-          List.map NewsItem.view model.list
+          List.map NewsItem.view model
         )
       ]
     ]
